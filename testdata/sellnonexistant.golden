@@ -1,0 +1,19 @@
+{
+  "Txns":[
+    {
+      "Date":"2018-06-30T12:00:23Z",
+      "Exchange":"Binance",
+      "BaseCurrency":"ETH",
+      "BaseSpent":5.00,
+      "QuoteCurrency":"AUD",
+      "QuoteReceived":1500.00
+    }
+  ],
+  "Accounts":{
+  },
+  "Files":null,
+  "StartDate":"2017-07-01T00:00:01Z",
+  "EndDate":"2018-06-30T23:59:59Z",
+  "CapitalGains":1500,
+  "TradingGains":1500
+}

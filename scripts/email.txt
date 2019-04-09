@@ -1,0 +1,8 @@
+Good Afternoon,
+
+I am currently developing software that analyses the Trade History exports from cryptocurrency exchanges to calculate how much capital gains an individual has made.
+
+Could I kindly request a sample/example file of the transaction history that bitpanda exports?
+
+Kind Regards
+Sean
