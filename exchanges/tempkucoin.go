@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"cgtcalc/model"
@@ -29,13 +30,13 @@ func (txn *TempKuCoin) ProcessData() (out model.Transaction) {
 	out.Date = t
 	out.BaseCurrency, out.QuoteCurrency = model.InvMarketConverter(txn.Market, txn.Type)
 	out.ExchangeID = txn.Timestamp + txn.Market
-	out.QuoteReceived = txn.Amount
-	out.BaseSpent = txn.DealValue
-	//if strings.ToUpper(txn.Type) == "BUY" {
-	//} else {
-	//out.QuoteReceived = txn.Amount
-	//out.BaseSpent = txn.DealValue
-	//}
+	if strings.ToUpper(txn.Type) == "BUY" {
+		out.QuoteReceived = txn.Amount
+		out.BaseSpent = txn.DealValue
+	} else {
+		out.QuoteReceived = txn.DealValue
+		out.BaseSpent = txn.Amount
+	}
 
 	out.Exchange = "KuCoin"
 
