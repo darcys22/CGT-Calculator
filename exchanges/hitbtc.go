@@ -26,7 +26,7 @@ type Hitbtc struct {
 }
 
 func (txn *Hitbtc) ProcessData() (out model.Transaction) {
-	t, err := time.Parse("02/01/2006 15:04", txn.Date)
+	t, err := time.Parse("2/01/2006 15:04", txn.Date)
 	if err != nil {
 		log.Fatal(err)
 	}
