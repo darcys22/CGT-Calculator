@@ -54,6 +54,8 @@ func ExchangeFuncSearch(exchange string) (Processor, error) {
 		f = MercatoxFile
 	case "POLONIEX":
 		f = PoloniexFile
+	case "TEMPKUCOIN":
+		f = TempKuCoinFile
 	case "CUSTOM":
 		f = CustomFile
 	default:
