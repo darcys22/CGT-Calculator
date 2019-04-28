@@ -40,7 +40,7 @@ func (txn *Mercatox) ProcessData() (out model.Transaction) {
 		out.QuoteReceived = txn.Amount
 		out.BaseSpent = txn.Total
 	} else {
-		fmt.Warn("Sell side not full implemented, finish this")
+		log.Warn("Sell side not full implemented, finish this")
 		out.BaseSpent = txn.Amount
 		out.QuoteReceived = txn.Total
 	}
@@ -92,6 +92,9 @@ func MercatoxFile(filename string) []model.Transaction {
 
 		log.Info(data)
 		log.Info("Processed the data")
+		//if data.Type == "buy" || data.Type == "sell" || data.Type == "deposit" {
+		//out = append(out, data.ProcessData())
+		//}
 		out = append(out, data.ProcessData())
 	}
 

@@ -14,6 +14,8 @@ func ExchangeFuncSearch(exchange string) (Processor, error) {
 	var f Processor
 
 	switch strings.ToUpper(exchange) {
+	case "BIBOX":
+		f = BiboxFile
 	case "BINANCE":
 		f = BinanceFile
 	case "BITFINEX":

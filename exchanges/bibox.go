@@ -1,98 +1,141 @@
 package exchanges
 
 import (
-	"strings"
-	"strconv"
-	"os"
 	"encoding/csv"
+	"fmt"
+	"os"
+	"strconv"
 	"time"
-
 
 	"cgtcalc/model"
 
 	log "github.com/Sirupsen/logrus"
 )
 
-type Poloniex struct {
-	Timestamp 			string 				
-	Market 					string 				
-	Category				string				
-	Type						string				
-	Price						float64				
-	Amount					float64				
-	Total						float64				
-	Fee							string
-	OrderNumber			string
-	BaseTotalLessFee	float64				
-	QuoteTotalLessFee	float64				
+type BiboxLine struct {
+	Time          string
+	User_id       string
+	Coin_symbol   string
+	Bill_type     string
+	Change_amount float64
+	Fee           float64
+	Fee_symbol    string
+	Result_amount float64
+	Relay_id      string
+	Comment       string
 }
 
-func (txn *Poloniex) ProcessData() (out model.Transaction){
-	t, err := time.Parse("2006-01-02 15:04:05",txn.Timestamp)
+type Bibox struct {
+	RawTransactions []BiboxLine
+	Txns            map[string]model.Transaction
+}
+
+func NewBibox(in []BiboxLine) (*Bibox, error) {
+	marketstruct := new(Bibox)
+	marketstruct.RawTransactions = in
+	marketstruct.Txns = make(map[string]model.Transaction)
+
+	return marketstruct, nil
+}
+
+func (mdl *Bibox) ProcessData() []model.Transaction {
+	for _, btxn := range mdl.RawTransactions {
+		if btxn.Bill_type == "3" || btxn.Bill_type == "5" {
+			if value, exist := mdl.Txns[btxn.Relay_id]; exist {
+				log.Info(fmt.Sprintf("Key already found in map, adding to id: %s", btxn.Relay_id))
+				if btxn.Change_amount < 0 {
+					if mdl.Txns[btxn.Relay_id].BaseSpent != 0 && mdl.Txns[btxn.Relay_id].BaseCurrency != btxn.Coin_symbol {
+						log.Warn(fmt.Sprintf("Have a negative amount in %s, however the amount is different then the base currency", btxn.Relay_id))
+						log.Warn(fmt.Sprintf("CSV %s, %.2f", btxn.Coin_symbol, btxn.Change_amount))
+						log.Warn(fmt.Sprintf("Current %s, %.2f", mdl.Txns[btxn.Relay_id].BaseCurrency, mdl.Txns[btxn.Relay_id].BaseSpent))
+					} else {
+						value.BaseSpent += btxn.Change_amount * -1
+						value.BaseCurrency = btxn.Coin_symbol
+					}
+				} else {
+					if mdl.Txns[btxn.Relay_id].QuoteReceived != 0 && mdl.Txns[btxn.Relay_id].QuoteCurrency != btxn.Coin_symbol {
+						if mdl.Txns[btxn.Relay_id].QuoteCurrency == "" {
+							value.QuoteCurrency = btxn.Coin_symbol
+						} else {
+							log.Warn(fmt.Sprintf("Have a positive amount in %s, however the amount is different then the quote currency", btxn.Relay_id))
+
+							log.Warn(fmt.Sprintf("CSV %s, %.2f", btxn.Coin_symbol, btxn.Change_amount))
+							log.Warn(fmt.Sprintf("Current %s, %.2f", mdl.Txns[btxn.Relay_id].QuoteCurrency, mdl.Txns[btxn.Relay_id].QuoteReceived))
+						}
+
+					}
+					value.QuoteReceived += btxn.Change_amount
+					value.QuoteCurrency = btxn.Coin_symbol
+				}
+				mdl.Txns[btxn.Relay_id] = value
+			} else {
+				log.Info(fmt.Sprintf("Key not found in map, creating new with id: %s", btxn.Relay_id))
+				var out model.Transaction
+				t, err := time.Parse("2/01/2006 15:04", btxn.Time)
+				if err != nil {
+					log.Fatal(err)
+				}
+				out.Date = t
+				out.BaseSpent = 0.0
+				out.QuoteReceived = 0.0
+				out.ExchangeID = btxn.Relay_id
+				if btxn.Change_amount < 0 {
+					out.BaseCurrency = btxn.Coin_symbol
+					out.BaseSpent += btxn.Change_amount * -1
+				} else {
+					out.QuoteCurrency = btxn.Coin_symbol
+					out.QuoteReceived += btxn.Change_amount
+				}
+				out.Exchange = "Bibox"
+				mdl.Txns[btxn.Relay_id] = out
+			}
+		}
+	}
+
+	v := make([]model.Transaction, 0, len(mdl.Txns))
+
+	for _, value := range mdl.Txns {
+		v = append(v, value)
+	}
+
+	return v
+}
+
+func BiboxFile(filename string) []model.Transaction {
+	csvFile, err := os.Open(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
-	out.Date = t
-	out.BaseCurrency, out.QuoteCurrency = model.MarketConverter(txn.Market, txn.Type)
-	out.ExchangeID = txn.Timestamp + txn.OrderNumber
-	if (strings.ToUpper(txn.Type)=="BUY") {
-		out.QuoteReceived = txn.QuoteTotalLessFee
-		out.BaseSpent = txn.Total
-	} else {
-		out.BaseSpent = txn.Amount
-		out.QuoteReceived = txn.BaseTotalLessFee
+	defer csvFile.Close()
+
+	lines, err := csv.NewReader(csvFile).ReadAll()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	out.Exchange = "Poloniex"
+	var x []BiboxLine
 
-	return	
-}
-
-func PoloniexFile(filename string) ([]model.Transaction) {
-		log.Info("Opening File")
-		csvFile,err := os.Open(filename)
-		if err != nil {
-			log.Fatal(err)
+	for _, line := range lines[1:] {
+		f4, _ := strconv.ParseFloat(line[4], 64)
+		f5, _ := strconv.ParseFloat(line[5], 64)
+		f7, _ := strconv.ParseFloat(line[7], 64)
+		data := BiboxLine{
+			Time:          line[0],
+			User_id:       line[1],
+			Coin_symbol:   line[2],
+			Bill_type:     line[3],
+			Change_amount: f4,
+			Fee:           f5,
+			Fee_symbol:    line[6],
+			Result_amount: f7,
+			Relay_id:      line[8],
+			Comment:       line[9],
 		}
-		defer csvFile.Close()
+		x = append(x, data)
+		log.Info(data)
+	}
 
-		log.Info("Reading File")
-		lines, err := csv.NewReader(csvFile).ReadAll()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		var out []model.Transaction
-
-		log.Info("Looping over the lines")
-		log.Info("Total Lines: ", len(lines[1:]))
-		for idx, line := range lines[1:] {
-			log.Info("Processing line: ", idx)
-			f1, _ := strconv.ParseFloat(line[4],64)
-			f2, _ := strconv.ParseFloat(line[5],64)
-			f3, _ := strconv.ParseFloat(line[6],64)
-			f4, _ := strconv.ParseFloat(line[9],64)
-			f5, _ := strconv.ParseFloat(line[10],64)
-			log.Info("Processed the floats")
-			data := Poloniex{
-					Timestamp: 					line[0],
-					Market: 						line[1],
-					Category:						line[2],
-					Type: 							line[3],
-					Price:							f1,
-					Amount:							f2,
-					Total:							f3,
-					Fee:								line[7],
-					OrderNumber:				line[8],
-					BaseTotalLessFee: 	f4,
-					QuoteTotalLessFee: 	f5,
-			}
-
-			log.Info(data)
-			log.Info("Processed the data")
-			out = append(out, data.ProcessData())
-		}
-
-		return out
+	mdl, _ := NewBibox(x)
+	return mdl.ProcessData()
 
 }

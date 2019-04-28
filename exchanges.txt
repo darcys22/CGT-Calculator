@@ -1,4 +1,4 @@
-Bibox
+Bibox - DONE
 Binance - DONE
 Bitcoin.co.id
 bitcoin.de
@@ -6,7 +6,7 @@ Bitfinex - DONE
 Bithumb
 BitMarket
 BitMex
-BitPanda
+BitPanda - DONE
 Bitstap
 Bittrex - DONE
 Bleutrade
@@ -27,7 +27,7 @@ Ethfinex - DONE
 Gate.io
 Gatecoin
 Gemini
-hitbtc
+hitbtc - DONE
 Huobi
 Independent Reserve - DONE
 ITBit Trading Services
@@ -37,7 +37,7 @@ Liqui
 Livecoin.Net
 LocalBitcoins
 Luno
-Mercatox
+Mercatox - DONE
 Nova Exchange
 KCoin
 Poloniex - DONE
