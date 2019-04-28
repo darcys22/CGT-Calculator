@@ -25,7 +25,7 @@ cgtcalc dump > output/transactions_list.txt
 
 cp -rf ~/.config/cgtcalc/gainsdb ./output/
 cp -rf ~/.config/cgtcalc/pricedb ./output/
-cp ~/.config/cgtcalc/cgt.conf ./output/
+cp cgt.conf ./output/
 
 mv outputcalculation.pdf ./output/
 mv result.csv ./output/
