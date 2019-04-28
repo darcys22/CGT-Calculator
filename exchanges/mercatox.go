@@ -19,6 +19,7 @@ type Mercatox struct {
 	Type            string
 	Currency        string
 	Pair            string
+	Fee             string
 	Amount          float64
 	Price           float64
 	Total           float64
@@ -29,7 +30,7 @@ type Mercatox struct {
 }
 
 func (txn *Mercatox) ProcessData() (out model.Transaction) {
-	t, err := time.Parse("Jan 2,2006 15:04:05 PM", txn.Time)
+	t, err := time.Parse("Jan 2, 2006, 15:04:05 PM", txn.Time)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -70,9 +71,9 @@ func MercatoxFile(filename string) []model.Transaction {
 	log.Info("Total Lines: ", len(lines[1:]))
 	for idx, line := range lines[1:] {
 		log.Info("Processing line: ", idx)
-		f6, _ := strconv.ParseFloat(line[6], 64)
 		f7, _ := strconv.ParseFloat(line[7], 64)
 		f8, _ := strconv.ParseFloat(line[8], 64)
+		f9, _ := strconv.ParseFloat(line[9], 64)
 		log.Info("Processed the floats")
 		data := Mercatox{
 			MXTransactionID: line[0],
@@ -81,21 +82,21 @@ func MercatoxFile(filename string) []model.Transaction {
 			Type:            line[3],
 			Currency:        line[4],
 			Pair:            line[5],
-			Amount:          f6,
-			Price:           f7,
-			Total:           f8,
-			Action:          line[9],
-			From:            line[10],
-			To:              line[11],
-			Time:            line[12],
+			Fee:             line[6],
+			Amount:          f7,
+			Price:           f8,
+			Total:           f9,
+			Action:          line[10],
+			From:            line[11],
+			To:              line[12],
+			Time:            line[13],
 		}
 
 		log.Info(data)
 		log.Info("Processed the data")
-		//if data.Type == "buy" || data.Type == "sell" || data.Type == "deposit" {
-		//out = append(out, data.ProcessData())
-		//}
-		out = append(out, data.ProcessData())
+		if data.Type == "Deal" {
+			out = append(out, data.ProcessData())
+		}
 	}
 
 	return out

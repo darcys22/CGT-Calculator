@@ -48,7 +48,7 @@ func ExchangeFuncSearch(exchange string) (Processor, error) {
 		f = KuCoinFile
 	case "IR":
 		f = IndependantReserveFile
-	case "mercatox":
+	case "MERCATOX":
 		f = MercatoxFile
 	case "POLONIEX":
 		f = PoloniexFile
