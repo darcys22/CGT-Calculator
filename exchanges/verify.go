@@ -28,6 +28,8 @@ func ExchangeFuncSearch(exchange string) (Processor, error) {
 		f = BittrexFile
 	case "BTCMARKETS":
 		f = BtcMarketsFile
+	case "COINEXCHANGE":
+		f = CoinexchangeFile
 	case "COINSPOT":
 		f = CoinspotFile
 	case "COINTRACKING":
