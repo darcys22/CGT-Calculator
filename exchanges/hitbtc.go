@@ -33,8 +33,14 @@ func (txn *Hitbtc) ProcessData() (out model.Transaction) {
 	out.Date = t
 	out.BaseCurrency, out.QuoteCurrency = model.MarketConverter(txn.Instrument, txn.Side)
 	out.ExchangeID = txn.TradeID
-	out.QuoteReceived = txn.Quantity
-	out.BaseSpent = txn.Volume
+
+	if strings.ToUpper(txn.Side) == "BUY" {
+		out.QuoteReceived = txn.Quantity
+		out.BaseSpent = txn.Volume
+	} else {
+		out.BaseSpent = txn.Quantity
+		out.QuoteReceived = txn.Volume
+	}
 
 	out.Exchange = "Hitbtc"
 
