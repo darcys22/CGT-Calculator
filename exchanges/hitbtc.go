@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"cgtcalc/model"

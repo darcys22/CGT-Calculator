@@ -6,6 +6,8 @@
 
 - Added command line arguments for adding a price file to allow choice of columns and dateFormat
 - Search the price database for a value
+- Made a limit to how many loops that searching for a value can have and will add a day if issues arise
+- prevent the account creditor from going into the negative transaction (buffer overflow in checking out transactions in wallet)
 
 ## 1.0.3 (2019-02-10)
 
